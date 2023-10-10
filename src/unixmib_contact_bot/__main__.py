@@ -29,10 +29,14 @@ def main():
     distribution_lists: set[int] = set()
 
     super_admins: list[str] = [
-        int(value) for value in provided_super_admins.split(",") if value.isnumeric()
+        int(value)
+        for value in provided_super_admins.split(",")
+        if value.isnumeric()
     ]
 
-    database_url = os.environ.get("DATABASE_URL", "sqlite:///unixmib_contact_bot.db")
+    database_url = os.environ.get(
+        "DATABASE_URL", "sqlite:///unixmib_contact_bot.db"
+    )
     engine = create_engine(database_url)
 
     Base.metadata.create_all(engine)
@@ -45,7 +49,9 @@ def main():
         bot_token=api_token
     ) as client:
 
-        @client.on(events.NewMessage(pattern="/start"))
+        @client.on(
+            events.NewMessage(pattern="/start", func=lambda e: e.is_private)
+        )
         async def handler(event):
             await event.respond(
                 """Ciao, sono il bot di contatto di UnixMiB!
@@ -53,7 +59,9 @@ Scrivi un messaggio e sarai ricontattato al più presto."""
             )
 
         @client.on(
-            events.NewMessage(pattern="/add_distribution_list", from_users=super_admins)
+            events.NewMessage(
+                pattern="/add_distribution_list", from_users=super_admins
+            )
         )
         async def add_distribution_list(event):
             current_chat_id = event.chat_id
@@ -65,7 +73,9 @@ Scrivi un messaggio e sarai ricontattato al più presto."""
                 f"Aggiunta lista di distribuzione {current_chat_id} con successo."
             )
 
-        @client.on(events.NewMessage(pattern="[^/]"))
+        @client.on(
+            events.NewMessage(pattern="[^/]", func=lambda e: e.is_private)
+        )
         async def handler2(event):
             if event.sender.username is None:
                 await event.respond(
